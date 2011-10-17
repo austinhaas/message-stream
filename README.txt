@@ -8,9 +8,9 @@ receivers. http://www.sbcl.org/manual/#sb_002dconcurrency
 The intent of this code is to treat SBCL's mailbox implementation as
 an infinite sequence, so that we may create and use analogs to
 familiar sequence operations, such as FIND. The stream algorithm from
-SICP is a very clean and simple way to develop the base primitives, on
-top of which the sequence operations are easily
-implemented. Certainly, this is not the most efficient solution.
+SICP is a clean and simple way to develop the base primitives, on top
+of which the sequence operations are easily implemented. Certainly,
+this is not the most efficient solution.
 
 One very important caveat is that, while any thread can send messages
 to the mailbox, only one thread can safely use this stream
@@ -18,21 +18,17 @@ implementation.
 
 Implementing a sequence on the mailbox system has two important
 implications: 1. The sequence is infinite. 2. The next item in the
-sequence is governed by an outside process -- whatever adds a new
+sequence is governed by an outside process, i.e., whatever adds a new
 message to the mailbox.
 
 To address #2, we've modified the stream implementation to support
 lazy evaluation of the CAR, in addition to the CDR. This is necessary
-because we don't want to start trying to pull the first message as
-soon as we create the stream, and similarly, we don't want to have to
-immediately pull the next message every time we move up the
+because we don't want to start trying to retrieve the first message as
+soon as we create the stream, and similarly, we may not want to
+immediately retrieve the next message every time we move up the
 list. Consider that, at any time, the next message might not be
-available; so we don't want to wait for it before we even need it.
+available; so we wouldn't want to wait for it before we even need it.
 
-To address both #1 and #2, we've added a means to timeout operations:
-WITH-TIMEOUT. The problem with #1 is that several sequence operations,
-such as REMOVE, cannot handle an infinite sequence with their default
-arguments. REMOVE, by default, tries to remove ALL of the matching
-items in a sequence, which means that it would never terminate. The
-problem with #2 is that there is no telling how long we might have to
-wait for the next item to arrive. In fact, it may never arrive.
+To address both #1 and #2, we've added an optional timeout parameter
+to most interface methods. When an operation times out, a
+timeout-condition is raised.

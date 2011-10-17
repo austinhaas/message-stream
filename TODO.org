@@ -1,0 +1,2 @@
+* Add more sequence functions
+* Add more tests

@@ -1,23 +1,37 @@
-This stream implementation is adapted from chapter 3.5 of Structure
-and Interpretation of Computer Programs.
-
-From the SBCL manual: sb-concurrency:mailbox is a lock-free message
-queue where one or multiple ends can send messages to one or multiple
-receivers. http://www.sbcl.org/manual/#sb_002dconcurrency
-
-The intent of this code is to treat SBCL's mailbox implementation as
-an infinite sequence, so that we may create and use analogs to
-familiar sequence operations, such as FIND. The stream algorithm from
-SICP is a clean and simple way to develop the base primitives, on top
-of which the sequence operations are easily implemented. Certainly,
-this is not the most efficient solution.
+This code provides two additional services on top of SBCL's concurrent
+mailbox implementation [1]: 1. Waiting for a new message can timeout
+and 2. The mailbox gets a buffer to store messages in the order they
+were received, and we can treat the whole thing as a
+pseudo-sequence. This allows us to do things like wait for a
+particular message (e.g., using STREAM-FIND) while keeping any
+preceding messages intact and in order for later operations.
 
 One very important caveat is that, while any thread can send messages
-to the mailbox, only one thread can safely use this stream
-implementation.
+to the mailbox used by a message-stream, only one thread can safely
+use the message-stream functions, since the added buffer and the
+functions on the buffer are not thread-safe.
+
+The motivation for this code was to create an analog to Erlang's
+receiver function, which can selectively match incoming messages
+against a pattern, and transparently maintain the original order of
+the incoming messages (including those that didn't match) after the
+receive function exits. One use-case is to send an asynchronous
+request to another process and then block on an incoming message
+stream until the reply is received. Any other incoming messages are
+ignored in the meantime, but they will be intact for subsequent
+operations.
+
+----------------------------------------------------------------------
+Implementation Notes
+
+This stream implementation is adapted from chapter 3.5 of Structure
+and Interpretation of Computer Programs. It affords us a clean and
+simple way to develop the base primitives, on top of which the
+sequence operations are easily implementable. Certainly, this is not
+the most efficient solution.
 
 Implementing a sequence on the mailbox system has two important
-implications: 1. The sequence is infinite. 2. The next item in the
+implications: 1. The sequence is infinite and 2. The next item in the
 sequence is governed by an outside process, i.e., whatever adds a new
 message to the mailbox.
 
@@ -32,3 +46,9 @@ available; so we wouldn't want to wait for it before we even need it.
 To address both #1 and #2, we've added an optional timeout parameter
 to most interface methods. When an operation times out, a
 timeout-condition is raised.
+
+----------------------------------------------------------------------
+
+[1] From the SBCL manual: sb-concurrency:mailbox is a lock-free
+message queue where one or multiple ends can send messages to one or
+multiple receivers. http://www.sbcl.org/manual/#sb_002dconcurrency

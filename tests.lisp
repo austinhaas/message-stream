@@ -6,7 +6,7 @@
   (run! test-spec))
 
 (defun make-cons-gen (&optional (char-repeat 26))
-  "A simple generator that produces cons cells like (\A . 0). The
+  "A simple generator that produces cons cells like (#\A . 0). The
 letter and number will increment on each call, but the letter will
 wrap after char-repeat generations."
   (let ((cur 0))

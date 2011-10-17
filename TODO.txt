@@ -1,0 +1,4 @@
+* Document exported symbols
+* Document examples
+* Add more sequence functions
+* Add more tests

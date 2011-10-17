@@ -49,22 +49,6 @@ regular intervals."
     (signals (timeout-condition) (stream-remove-if #'constantly s))
     (signals (timeout-condition) (stream-dequeue s))))
 
-;; This isn't finished. I ran into an issue where the test framework
-;; was muffling errors, which was causing collect-stream to collect a
-;; bunch of nil values. I wasn't sure what's the best way to handle
-;; that, if at all.
-
-;; (test timeout2
-;;   ;; These tests are intended to check if the stream is still intact
-;;   ;; after an operation that timed out.
-;;   (let ((*default-timeout* 10)
-;;         (s (make-test-stream :char-repeat 5 :max-messages 5 :initial-delay 1000)))
-;;     (signals (timeout-condition) (stream-car s))
-;;     (is (equal (collect-gen (make-cons-gen 5) 5)
-;;                (collect-stream s 5)))
-
-;;     ))
-
 (test basic-functions
   (let ((s (make-test-stream :char-repeat 5 :max-messages 8)))
     (is (equal '(#\A . 0) (stream-car s)))

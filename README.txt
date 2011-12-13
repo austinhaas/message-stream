@@ -1,10 +1,8 @@
-This code provides two additional services on top of SBCL's concurrent
-mailbox implementation [1]: 1. Waiting for a new message can timeout
-and 2. The mailbox gets a buffer to store messages in the order they
-were received, and we can treat the whole thing as a
-pseudo-sequence. This allows us to do things like wait for a
-particular message (e.g., using STREAM-FIND) while keeping any
-preceding messages intact and in order for later operations.
+This code is an extension to SBCL's concurrent mailbox implementation
+[1] which allows us to treat the mailbox like a pseudo-sequence. With
+it we can do things like wait for a particular message (e.g., using
+STREAM-FIND) while keeping any preceding messages intact and in order
+for later operations.
 
 One very important caveat is that, while any thread can send messages
 to the mailbox used by a message-stream, only one thread can safely

@@ -1,12 +1,8 @@
 (in-package #:message-stream)
 
-(defparameter *default-timeout* 5000
-  "The default amount of time, in milliseconds, that an operation will
-run before signalling a timeout-condition.")
-(defparameter *sleep-interval* 200
-  "The default interval, in milliseconds, that the
-receive-message-with-timeout function will sleep between repeated
-attempts to retrieve the next message.")
+(defparameter *default-timeout* 5
+  "The default amount of time, in seconds, that an operation will run
+before signalling a timeout-condition.")
 
 (define-condition timeout-condition (condition)
   ()
@@ -16,33 +12,8 @@ attempts to retrieve the next message.")
   "This variable is bound automatically via the with-timeout macro.")
 
 (defmacro with-timeout (timeout exp)
-  `(let ((*stop-time* (when ,timeout (+ (get-internal-real-time) ,timeout))))
+  `(let ((*stop-time* (when ,timeout (+ (get-internal-real-time) (* ,timeout internal-time-units-per-second)))))
      ,exp))
-
-(defun receive-message-with-timeout (mailbox timeout &optional (sleep-interval *sleep-interval*))
-  "Tries to retrieve a message from mailbox, blocking until timeout if
-necessary. Returns two values: the message retrieved, or nil if the
-operation timed out, and a boolean indicating if the operation was
-successful or not. The value of timeout is specified in
-milliseconds. If timeout is nil, then it is assumed to be infinity. A
-negative timeout is the same as 0."
-  ;; I'll change this crude implementation once SBCL has better
-  ;; support for timeouts.
-  (cond ((null timeout)
-         (values (sb-concurrency:receive-message mailbox) t))
-        ((<= timeout 0)
-         (sb-concurrency:receive-message-no-hang mailbox))
-        (t
-         (let ((time-remaining timeout))
-           (loop
-             (multiple-value-bind (message success)
-                 (sb-concurrency:receive-message-no-hang mailbox)
-               (when success
-                 (return (values message t)))
-               (when (< time-remaining 0)
-                 (return (values nil nil)))
-               (sleep (/ sleep-interval 1000))
-               (decf time-remaining sleep-interval)))))))
 
 (defmacro stream-cons (a b)
   ;; We have to delay the car, as well as the cdr, because we don't
@@ -89,7 +60,7 @@ negative timeout is the same as 0."
      (let ((timeout (when *stop-time*
                       (- *stop-time* (get-internal-real-time)))))
        (multiple-value-bind (result success)
-           (receive-message-with-timeout mailbox timeout)
+           (sb-concurrency:receive-message mailbox :timeout (when timeout (/ timeout internal-time-units-per-second)))
          (if success
              result
              (error 'timeout-condition)))))

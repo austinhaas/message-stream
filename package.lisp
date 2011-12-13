@@ -2,7 +2,6 @@
   (:use #:cl)
   (:export
    :*default-timeout*
-   :*sleep-interval*
    :timeout-condition
    :make-message-stream
    :stream-cons

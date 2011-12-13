@@ -38,7 +38,7 @@ regular intervals."
 (in-suite basic-suite)
 
 (test timeout
-  (let ((*default-timeout* 10)
+  (let ((*default-timeout* .1)
         (s (make-message-stream (make-mailbox))))
     (signals (timeout-condition) (stream-car s))
     (signals (timeout-condition) (stream-cdr s))

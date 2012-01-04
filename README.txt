@@ -1,3 +1,13 @@
+----------------------------------------------------------------------
+Note
+
+This was a first stab and at the present time I've determined
+that--for my application--I'm better served by a simpler approach,
+which lives here: https://github.com/austinhaas/mailbox-plus
+
+----------------------------------------------------------------------
+Description
+
 This code is an extension to SBCL's concurrent mailbox implementation
 [1] which allows us to treat the mailbox like a pseudo-sequence. With
 it we can do things like wait for a particular message (e.g., using
